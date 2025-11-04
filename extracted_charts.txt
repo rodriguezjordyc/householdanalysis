@@ -1,0 +1,918 @@
+EXTRACTED CHART CODE CELLS
+====================================================================================================
+
+NOTE: These charts need to be adapted to use:
+  - race_5cat instead of ppagecat
+  - race_groups = ['White', 'Hispanic', 'Black', 'Asian'] instead of age groups
+====================================================================================================
+
+
+====================================================================================================
+Chart 2: Overall Financial Situation (B2)
+====================================================================================================
+
+# Chart 2: Age Groups vs Overall Financial Situation (B2)
+# Filter for age groups under 55 and valid B2 responses
+
+# Define age groups to include (excluding 55+)
+age_groups_to_include = ['18-24', '25-34', '35-44', '45-54']
+
+# Filter data
+df_chart2 = df[df['ppagecat'].isin(age_groups_to_include) & df['B2'].notna()].copy()
+
+# Create a new B2 category combining "just getting by" and "finding it difficult"
+df_chart2['B2_grouped'] = df_chart2['B2'].apply(
+    lambda x: 'Just getting by' if x in ['Just getting by', 'Finding it difficult to get by'] 
+    else x
+)
+
+# Create crosstab with percentages
+financial_by_age = pd.crosstab(df_chart2['ppagecat'], df_chart2['B2_grouped'], normalize='index') * 100
+
+# Define the order of financial situation categories (from best to worst)
+financial_order = ['Living comfortably', 'Doing okay', 'Just getting by']
+
+# Filter to only include categories that exist in the data
+financial_order = [cat for cat in financial_order if cat in financial_by_age.columns]
+financial_by_age = financial_by_age[financial_order]
+
+# Reindex to ensure age groups are in order
+financial_by_age = financial_by_age.reindex(age_groups_to_include)
+
+# Create the grouped bar chart
+fig, ax = plt.subplots(figsize=(14, 7), facecolor='white')
+ax.set_facecolor('white')
+
+# Define bar positions
+x = np.arange(len(age_groups_to_include))
+width = 0.25
+
+# Define simple, distinguishable colors
+colors = ['#70AD47', '#4472C4', '#FF6347']  # Green, Blue, Red-orange
+
+# Create bars for each financial situation category
+bars = []
+for i, category in enumerate(financial_order):
+    offset = (i - len(financial_order)/2 + 0.5) * width
+    bar = ax.bar(x + offset, financial_by_age[category], width, 
+                 label=category, color=colors[i], edgecolor='white', linewidth=0.5)
+    bars.append(bar)
+
+# Add percentage labels on top of each bar
+for bar_group in bars:
+    for bar in bar_group:
+        height = bar.get_height()
+        if height > 0:  # Only show label if there's a value
+            ax.text(bar.get_x() + bar.get_width()/2., height,
+                    f'{height:.1f}%',
+                    ha='center', va='bottom', fontsize=14, fontweight='bold')
+
+# Customize the chart
+ax.set_xlabel('Age Group', fontsize=14, fontweight='bold')
+ax.set_ylabel('Percentage (%)', fontsize=14, fontweight='bold')
+ax.set_title('Overall Financial Situation by Age Group\n(Hispanic Non-Retired Respondents Under 55)', 
+             fontsize=16, fontweight='bold', pad=20)
+ax.set_xticks(x)
+ax.set_xticklabels(age_groups_to_include, fontsize=14)
+ax.legend(loc='upper right', frameon=False, fontsize=14)
+
+# Remove gridlines and spines for minimalistic look
+ax.grid(False)
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.spines['left'].set_color('#CCCCCC')
+ax.spines['bottom'].set_color('#CCCCCC')
+
+# Set y-axis to show 0-60%
+ax.set_ylim(0, 60)
+ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: f'{int(y)}%'))
+ax.tick_params(axis='y', labelsize=14)
+
+plt.tight_layout()
+plt.show()
+
+# Print summary statistics
+print("\nOverall Financial Situation by Age Group (Under 55):")
+print("="*60)
+print(financial_by_age.round(1).to_string())
+print(f"\nTotal respondents included: {len(df_chart2):,}")
+
+
+====================================================================================================
+Chart 3: Emergency Savings Fund (EF1)
+====================================================================================================
+
+# Chart 3: Age Groups vs Emergency Savings Fund (EF1)
+# Filter for age groups under 55 and valid EF1 responses
+
+# Define age groups to include (excluding 55+)
+age_groups_to_include = ['18-24', '25-34', '35-44', '45-54']
+
+# Filter data
+df_chart3 = df[df['ppagecat'].isin(age_groups_to_include) & df['EF1'].notna()].copy()
+
+# Create crosstab with percentages
+ef1_by_age = pd.crosstab(df_chart3['ppagecat'], df_chart3['EF1'], normalize='index') * 100
+
+# Define the order of EF1 categories
+ef1_order = ['Yes', 'No']
+
+# Filter to only include categories that exist in the data
+ef1_order = [cat for cat in ef1_order if cat in ef1_by_age.columns]
+ef1_by_age = ef1_by_age[ef1_order]
+
+# Reindex to ensure age groups are in order
+ef1_by_age = ef1_by_age.reindex(age_groups_to_include)
+
+# Create the grouped bar chart
+fig, ax = plt.subplots(figsize=(12, 7), facecolor='white')
+ax.set_facecolor('white')
+
+# Define bar positions
+x = np.arange(len(age_groups_to_include))
+width = 0.35
+
+# Define simple, distinguishable colors
+colors = ['#70AD47', '#FF6347']  # Green for "Yes", Red-orange for "No"
+
+# Create bars for each EF1 category
+bars = []
+for i, category in enumerate(ef1_order):
+    offset = (i - len(ef1_order)/2 + 0.5) * width
+    bar = ax.bar(x + offset, ef1_by_age[category], width, 
+                 label=category, color=colors[i], edgecolor='white', linewidth=0.5)
+    bars.append(bar)
+
+# Add percentage labels on top of each bar
+for bar_group in bars:
+    for bar in bar_group:
+        height = bar.get_height()
+        if height > 0:  # Only show label if there's a value
+            ax.text(bar.get_x() + bar.get_width()/2., height,
+                    f'{height:.1f}%',
+                    ha='center', va='bottom', fontsize=14, fontweight='bold')
+
+# Customize the chart
+ax.set_xlabel('Age Group', fontsize=14, fontweight='bold')
+ax.set_ylabel('Percentage (%)', fontsize=14, fontweight='bold')
+ax.set_title('Emergency/Rainy Day Funds by Age Group\n(Hispanic Non-Retired Respondents Under 55)', 
+             fontsize=16, fontweight='bold', pad=20)
+ax.set_xticks(x)
+ax.set_xticklabels(age_groups_to_include, fontsize=14)
+ax.legend(loc='upper right', frameon=False, fontsize=14, title='Have Emergency Fund')
+
+# Remove gridlines and spines for minimalistic look
+ax.grid(False)
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.spines['left'].set_color('#CCCCCC')
+ax.spines['bottom'].set_color('#CCCCCC')
+
+# Set y-axis to show 0-80%
+ax.set_ylim(0, 80)
+ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: f'{int(y)}%'))
+ax.tick_params(axis='y', labelsize=14)
+
+plt.tight_layout()
+plt.show()
+
+# Print summary statistics
+print("\nEmergency/Rainy Day Funds by Age Group (Under 55):")
+print("="*60)
+print(ef1_by_age.round(1).to_string())
+print(f"\nTotal respondents included: {len(df_chart3):,}")
+
+
+====================================================================================================
+Chart 4: Actions Taken Due to Price Increases (INF3 series)
+====================================================================================================
+
+# Chart 4: Age Groups vs Actions Taken Due to Price Increases (INF3 series)
+# Filter for age groups under 55 and valid INF3 responses
+
+# Define age groups to include (excluding 55+)
+age_groups_to_include = ['18-24', '25-34', '35-44', '45-54']
+
+# Define the INF3 variables to include
+inf3_vars = {
+    'INF3_a': 'Used savings',
+    'INF3_b': 'Borrowed money/used credit',
+    'INF3_c': 'Reduced spending on essentials',
+    'INF3_e': 'Worked more/additional job'
+}
+
+# Filter data for age groups under 55
+df_chart4 = df[df['ppagecat'].isin(age_groups_to_include)].copy()
+
+# Calculate percentages for each action by age group
+inf3_by_age = pd.DataFrame()
+
+for var, label in inf3_vars.items():
+    if var in df_chart4.columns:
+        pct_by_age = df_chart4[df_chart4[var].notna()].groupby('ppagecat').apply(
+            lambda x: (x[var] == 'Yes').sum() / len(x) * 100
+        )
+        inf3_by_age[label] = pct_by_age
+
+# Reindex to ensure age groups are in order
+inf3_by_age = inf3_by_age.reindex(age_groups_to_include)
+
+# Create the grouped bar chart
+fig, ax = plt.subplots(figsize=(14, 7), facecolor='white')
+ax.set_facecolor('white')
+
+# Define bar positions
+x = np.arange(len(age_groups_to_include))
+width = 0.2
+
+# Define simple, distinguishable colors
+colors = ['#4472C4', '#FF6347', '#FFA500', '#70AD47']  # Blue, Red-orange, Orange, Green
+
+# Create bars for each action category
+bars = []
+action_labels = list(inf3_vars.values())
+
+for i, action in enumerate(action_labels):
+    if action in inf3_by_age.columns:
+        offset = (i - len(action_labels)/2 + 0.5) * width
+        bar = ax.bar(x + offset, inf3_by_age[action], width, 
+                     label=action, color=colors[i], edgecolor='white', linewidth=0.5)
+        bars.append(bar)
+
+# Add percentage labels on top of each bar
+for bar_group in bars:
+    for bar in bar_group:
+        height = bar.get_height()
+        if height > 0:  # Only show label if there's a value
+            ax.text(bar.get_x() + bar.get_width()/2., height,
+                    f'{height:.1f}%',
+                    ha='center', va='bottom', fontsize=12, fontweight='bold')
+
+# Customize the chart
+ax.set_xlabel('Age Group', fontsize=14, fontweight='bold')
+ax.set_ylabel('Percentage (%)', fontsize=14, fontweight='bold')
+ax.set_title('Actions Taken Due to Price Increases by Age Group\n(Hispanic Non-Retired Respondents Under 55)', 
+             fontsize=16, fontweight='bold', pad=20)
+ax.set_xticks(x)
+ax.set_xticklabels(age_groups_to_include, fontsize=14)
+ax.legend(loc='upper right', frameon=False, fontsize=12, bbox_to_anchor=(1.0, 1.0))
+
+# Remove gridlines and spines for minimalistic look
+ax.grid(False)
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.spines['left'].set_color('#CCCCCC')
+ax.spines['bottom'].set_color('#CCCCCC')
+
+# Set y-axis to show 0-95%
+ax.set_ylim(0, 95)
+ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: f'{int(y)}%'))
+ax.tick_params(axis='y', labelsize=14)
+
+plt.tight_layout()
+plt.show()
+
+# Print summary statistics
+print("\nActions Taken Due to Price Increases by Age Group (Under 55):")
+print("="*60)
+print(inf3_by_age.round(1).to_string())
+print(f"\nTotal respondents: {len(df_chart4):,}")
+
+
+====================================================================================================
+Chart 6: Buy Now Pay Later Usage (BNPL1)
+====================================================================================================
+
+# Chart 6: Age Groups vs Buy Now Pay Later Usage (BNPL1)
+# Filter for age groups under 55 and valid BNPL1 responses
+
+# Define age groups to include (excluding 55+)
+age_groups_to_include = ['18-24', '25-34', '35-44', '45-54']
+
+# Filter data
+df_chart6 = df[df['ppagecat'].isin(age_groups_to_include) & df['BNPL1'].notna()].copy()
+
+# Create crosstab with percentages
+bnpl1_by_age = pd.crosstab(df_chart6['ppagecat'], df_chart6['BNPL1'], normalize='index') * 100
+
+# Define the order of BNPL1 categories
+bnpl1_order = ['Yes', 'No']
+
+# Filter to only include categories that exist in the data
+bnpl1_order = [cat for cat in bnpl1_order if cat in bnpl1_by_age.columns]
+bnpl1_by_age = bnpl1_by_age[bnpl1_order]
+
+# Reindex to ensure age groups are in order
+bnpl1_by_age = bnpl1_by_age.reindex(age_groups_to_include)
+
+# Create the grouped bar chart
+fig, ax = plt.subplots(figsize=(12, 7), facecolor='white')
+ax.set_facecolor('white')
+
+# Define bar positions
+x = np.arange(len(age_groups_to_include))
+width = 0.35
+
+# Define simple, distinguishable colors
+colors = ['#FF6347', '#70AD47']  # Red-orange for "Yes", Green for "No"
+
+# Create bars for each BNPL1 category
+bars = []
+for i, category in enumerate(bnpl1_order):
+    offset = (i - len(bnpl1_order)/2 + 0.5) * width
+    bar = ax.bar(x + offset, bnpl1_by_age[category], width, 
+                 label=category, color=colors[i], edgecolor='white', linewidth=0.5)
+    bars.append(bar)
+
+# Add percentage labels on top of each bar
+for bar_group in bars:
+    for bar in bar_group:
+        height = bar.get_height()
+        if height > 0:  # Only show label if there's a value
+            ax.text(bar.get_x() + bar.get_width()/2., height,
+                    f'{height:.1f}%',
+                    ha='center', va='bottom', fontsize=14, fontweight='bold')
+
+# Customize the chart
+ax.set_xlabel('Age Group', fontsize=14, fontweight='bold')
+ax.set_ylabel('Percentage (%)', fontsize=14, fontweight='bold')
+ax.set_title('Buy Now Pay Later Usage by Age Group\n(Hispanic Non-Retired Respondents Under 55)', 
+             fontsize=16, fontweight='bold', pad=20)
+ax.set_xticks(x)
+ax.set_xticklabels(age_groups_to_include, fontsize=14)
+ax.legend(loc='upper right', frameon=False, fontsize=14, title='Used BNPL', bbox_to_anchor=(1.0, 1.0))
+
+# Remove gridlines and spines for minimalistic look
+ax.grid(False)
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.spines['left'].set_color('#CCCCCC')
+ax.spines['bottom'].set_color('#CCCCCC')
+
+# Set y-axis to show 0-100%
+ax.set_ylim(0, 100)
+ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: f'{int(y)}%'))
+ax.tick_params(axis='y', labelsize=14)
+
+plt.tight_layout()
+plt.show()
+
+# Print summary statistics
+print("\nBuy Now Pay Later Usage by Age Group (Under 55):")
+print("="*60)
+print(bnpl1_by_age.round(1).to_string())
+print(f"\nTotal respondents included: {len(df_chart6):,}")
+
+
+====================================================================================================
+Chart 8: Types of Savings/Assets (K21 series)
+====================================================================================================
+
+# Chart 8: Age Groups vs Types of Savings/Assets (K21 series)
+# Filter for age groups under 55 and valid K21 responses
+
+# Define age groups to include (excluding 55+)
+age_groups_to_include = ['18-24', '25-34', '35-44', '45-54']
+
+# Define the K21 variables to include
+k21_vars = {
+    'K21_a': 'Retirement savings account',
+    'K21_c': 'Stocks/bonds/ETFs/mutual funds',
+    'K21_d': 'Savings account',
+    'K21_e': 'Life insurance'
+}
+
+# Filter data for age groups under 55
+df_chart8 = df[df['ppagecat'].isin(age_groups_to_include)].copy()
+
+# Calculate percentages for each asset type by age group
+k21_by_age = pd.DataFrame()
+
+for var, label in k21_vars.items():
+    if var in df_chart8.columns:
+        pct_by_age = df_chart8[df_chart8[var].notna()].groupby('ppagecat').apply(
+            lambda x: (x[var] == 'Yes').sum() / len(x) * 100
+        )
+        k21_by_age[label] = pct_by_age
+
+# Reindex to ensure age groups are in order
+k21_by_age = k21_by_age.reindex(age_groups_to_include)
+
+# Create the grouped bar chart
+fig, ax = plt.subplots(figsize=(14, 7), facecolor='white')
+ax.set_facecolor('white')
+
+# Define bar positions
+x = np.arange(len(age_groups_to_include))
+width = 0.2
+
+# Define simple, distinguishable colors
+colors = ['#4472C4', '#70AD47', '#FFA500', '#FF6347']  # Blue, Green, Orange, Red-orange
+
+# Create bars for each asset category
+bars = []
+asset_labels = list(k21_vars.values())
+
+for i, asset in enumerate(asset_labels):
+    if asset in k21_by_age.columns:
+        offset = (i - len(asset_labels)/2 + 0.5) * width
+        bar = ax.bar(x + offset, k21_by_age[asset], width, 
+                     label=asset, color=colors[i], edgecolor='white', linewidth=0.5)
+        bars.append(bar)
+
+# Add percentage labels on top of each bar
+for bar_group in bars:
+    for bar in bar_group:
+        height = bar.get_height()
+        if height > 0:  # Only show label if there's a value
+            ax.text(bar.get_x() + bar.get_width()/2., height,
+                    f'{height:.1f}%',
+                    ha='center', va='bottom', fontsize=12, fontweight='bold')
+
+# Customize the chart
+ax.set_xlabel('Age Group', fontsize=14, fontweight='bold')
+ax.set_ylabel('Percentage (%)', fontsize=14, fontweight='bold')
+ax.set_title('Types of Savings and Assets by Age Group\n(Hispanic Non-Retired Respondents Under 55)', 
+             fontsize=16, fontweight='bold', pad=20)
+ax.set_xticks(x)
+ax.set_xticklabels(age_groups_to_include, fontsize=14)
+ax.legend(loc='upper right', frameon=False, fontsize=12, bbox_to_anchor=(1.0, 1.0))
+
+# Remove gridlines and spines for minimalistic look
+ax.grid(False)
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.spines['left'].set_color('#CCCCCC')
+ax.spines['bottom'].set_color('#CCCCCC')
+
+# Set y-axis to show 0-95%
+ax.set_ylim(0, 95)
+ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: f'{int(y)}%'))
+ax.tick_params(axis='y', labelsize=14)
+
+plt.tight_layout()
+plt.show()
+
+# Print summary statistics
+print("\nTypes of Savings and Assets by Age Group (Under 55):")
+print("="*60)
+print(k21_by_age.round(1).to_string())
+print(f"\nTotal respondents: {len(df_chart8):,}")
+
+
+====================================================================================================
+Chart 9: Investment Comfort Level (DC4)
+====================================================================================================
+
+# Chart 9: Age Groups vs Investment Comfort Level (DC4)
+# Filter for age groups under 55 and valid DC4 responses
+
+# Define age groups to include (excluding 55+)
+age_groups_to_include = ['18-24', '25-34', '35-44', '45-54']
+
+# Filter data
+df_chart9 = df[df['ppagecat'].isin(age_groups_to_include) & df['DC4'].notna()].copy()
+
+# Create crosstab with percentages
+dc4_by_age = pd.crosstab(df_chart9['ppagecat'], df_chart9['DC4'], normalize='index') * 100
+
+# Define the order of DC4 categories (from most to least comfortable)
+dc4_order = ['Very comfortable', 'Mostly comfortable', 'Slightly comfortable', 'Not comfortable']
+
+# Filter to only include categories that exist in the data
+dc4_order = [cat for cat in dc4_order if cat in dc4_by_age.columns]
+dc4_by_age = dc4_by_age[dc4_order]
+
+# Reindex to ensure age groups are in order
+dc4_by_age = dc4_by_age.reindex(age_groups_to_include)
+
+# Create the grouped bar chart
+fig, ax = plt.subplots(figsize=(14, 7), facecolor='white')
+ax.set_facecolor('white')
+
+# Define bar positions
+x = np.arange(len(age_groups_to_include))
+width = 0.2
+
+# Define simple, distinguishable colors
+colors = ['#70AD47', '#4472C4', '#FFA500', '#FF6347']  # Green, Blue, Orange, Red-orange
+
+# Create bars for each DC4 category
+bars = []
+for i, category in enumerate(dc4_order):
+    offset = (i - len(dc4_order)/2 + 0.5) * width
+    bar = ax.bar(x + offset, dc4_by_age[category], width, 
+                 label=category, color=colors[i], edgecolor='white', linewidth=0.5)
+    bars.append(bar)
+
+# Add percentage labels on top of each bar
+for bar_group in bars:
+    for bar in bar_group:
+        height = bar.get_height()
+        if height > 0:  # Only show label if there's a value
+            ax.text(bar.get_x() + bar.get_width()/2., height,
+                    f'{height:.1f}%',
+                    ha='center', va='bottom', fontsize=12, fontweight='bold')
+
+# Customize the chart
+ax.set_xlabel('Age Group', fontsize=14, fontweight='bold')
+ax.set_ylabel('Percentage (%)', fontsize=14, fontweight='bold')
+ax.set_title('Investment Comfort Level by Age Group\n(Hispanic Non-Retired Respondents Under 55)', 
+             fontsize=16, fontweight='bold', pad=20)
+ax.set_xticks(x)
+ax.set_xticklabels(age_groups_to_include, fontsize=14)
+ax.legend(loc='upper right', frameon=False, fontsize=12, bbox_to_anchor=(1.0, 1.0))
+
+# Remove gridlines and spines for minimalistic look
+ax.grid(False)
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.spines['left'].set_color('#CCCCCC')
+ax.spines['bottom'].set_color('#CCCCCC')
+
+# Set y-axis to show 0-95%
+ax.set_ylim(0, 95)
+ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: f'{int(y)}%'))
+ax.tick_params(axis='y', labelsize=14)
+
+plt.tight_layout()
+plt.show()
+
+# Print summary statistics
+print("\nInvestment Comfort Level by Age Group (Under 55):")
+print("="*60)
+print(dc4_by_age.round(1).to_string())
+print(f"\nTotal respondents included: {len(df_chart9):,}")
+
+
+====================================================================================================
+Chart 10: Financial Outlook (B0_a)
+====================================================================================================
+
+# Chart 10: Age Groups vs Financial Outlook (B0_a)
+# Filter for age groups under 55 and valid B0_a responses
+
+# Define age groups to include (excluding 55+)
+age_groups_to_include = ['18-24', '25-34', '35-44', '45-54']
+
+# Filter data
+df_chart10 = df[df['ppagecat'].isin(age_groups_to_include) & df['B0_a'].notna()].copy()
+
+# Create crosstab with percentages
+b0a_by_age = pd.crosstab(df_chart10['ppagecat'], df_chart10['B0_a'], normalize='index') * 100
+
+# Define the order of B0_a categories (from most positive to most negative)
+b0a_order = ['Not at all', 'Very little', 'Somewhat', 'Very well', 'Completely']
+
+# Filter to only include categories that exist in the data
+b0a_order = [cat for cat in b0a_order if cat in b0a_by_age.columns]
+b0a_by_age = b0a_by_age[b0a_order]
+
+# Reindex to ensure age groups are in order
+b0a_by_age = b0a_by_age.reindex(age_groups_to_include)
+
+# Create the grouped bar chart
+fig, ax = plt.subplots(figsize=(14, 7), facecolor='white')
+ax.set_facecolor('white')
+
+# Define bar positions
+x = np.arange(len(age_groups_to_include))
+width = 0.17
+
+# Define simple, distinguishable colors (green for positive, red-orange for negative)
+colors = ['#70AD47', '#A8D08D', '#FFA500', '#FF8C42', '#FF6347']
+
+# Create bars for each B0_a category
+bars = []
+for i, category in enumerate(b0a_order):
+    offset = (i - len(b0a_order)/2 + 0.5) * width
+    bar = ax.bar(x + offset, b0a_by_age[category], width, 
+                 label=category, color=colors[i], edgecolor='white', linewidth=0.5)
+    bars.append(bar)
+
+# Add percentage labels on top of each bar
+for bar_group in bars:
+    for bar in bar_group:
+        height = bar.get_height()
+        if height > 0:  # Only show label if there's a value
+            ax.text(bar.get_x() + bar.get_width()/2., height,
+                    f'{height:.1f}%',
+                    ha='center', va='bottom', fontsize=11, fontweight='bold')
+
+# Customize the chart
+ax.set_xlabel('Age Group', fontsize=14, fontweight='bold')
+ax.set_ylabel('Percentage (%)', fontsize=14, fontweight='bold')
+ax.set_title('Financial Outlook: "I will never have the things I want in life" by Age Group\n(Hispanic Non-Retired Respondents Under 55)', 
+             fontsize=16, fontweight='bold', pad=20)
+ax.set_xticks(x)
+ax.set_xticklabels(age_groups_to_include, fontsize=14)
+ax.legend(loc='upper right', frameon=False, fontsize=11, bbox_to_anchor=(1.0, 1.0))
+
+# Remove gridlines and spines for minimalistic look
+ax.grid(False)
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.spines['left'].set_color('#CCCCCC')
+ax.spines['bottom'].set_color('#CCCCCC')
+
+# Set y-axis to show 0-95%
+ax.set_ylim(0, 95)
+ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: f'{int(y)}%'))
+ax.tick_params(axis='y', labelsize=14)
+
+plt.tight_layout()
+plt.show()
+
+# Print summary statistics
+print("\nFinancial Outlook by Age Group (Under 55):")
+print("="*60)
+print(b0a_by_age.round(1).to_string())
+print(f"\nTotal respondents included: {len(df_chart10):,}")
+
+
+====================================================================================================
+Chart 11: Parent/Guardian Education Level (CH2A)
+====================================================================================================
+
+# Chart 11: Age Groups vs Parent/Guardian Education Level (CH2A)
+# Filter for age groups under 55 and valid CH2A responses
+
+# Define age groups to include (excluding 55+)
+age_groups_to_include = ['18-24', '25-34', '35-44', '45-54']
+
+# Filter data
+df_chart11 = df[df['ppagecat'].isin(age_groups_to_include) & df['CH2A'].notna()].copy()
+
+# Create education categories based on the CH2A codes
+def categorize_parent_education(value):
+    if value in ['Less than high school degree', 'High school degree or GED']:
+        return 'High school or below'
+    elif value in ['Some college but no degree', 'Certificate or technical degree', 'Associate degree']:
+        return 'Some college/technical degree'
+    elif value in ["Bachelor's degree", 'Graduate degree']:
+        return "Bachelor's degree or above"
+    else:
+        return None  # Exclude Don't know, Refused, and blanks
+
+df_chart11['CH2A_grouped'] = df_chart11['CH2A'].apply(categorize_parent_education)
+
+# Filter out None values (Don't know, Refused, blanks)
+df_chart11 = df_chart11[df_chart11['CH2A_grouped'].notna()].copy()
+
+# Create crosstab with percentages
+ch2a_by_age = pd.crosstab(df_chart11['ppagecat'], df_chart11['CH2A_grouped'], normalize='index') * 100
+
+# Define the order of CH2A categories (from lowest to highest education)
+ch2a_order = ['High school or below', 'Some college/technical degree', "Bachelor's degree or above"]
+
+# Filter to only include categories that exist in the data
+ch2a_order = [cat for cat in ch2a_order if cat in ch2a_by_age.columns]
+ch2a_by_age = ch2a_by_age[ch2a_order]
+
+# Reindex to ensure age groups are in order
+ch2a_by_age = ch2a_by_age.reindex(age_groups_to_include)
+
+# Create the grouped bar chart
+fig, ax = plt.subplots(figsize=(14, 7), facecolor='white')
+ax.set_facecolor('white')
+
+# Define bar positions
+x = np.arange(len(age_groups_to_include))
+width = 0.25
+
+# Define simple, distinguishable colors
+colors = ['#FF6347', '#FFA500', '#70AD47']  # Red-orange, Orange, Green
+
+# Create bars for each education category
+bars = []
+for i, category in enumerate(ch2a_order):
+    offset = (i - len(ch2a_order)/2 + 0.5) * width
+    bar = ax.bar(x + offset, ch2a_by_age[category], width, 
+                 label=category, color=colors[i], edgecolor='white', linewidth=0.5)
+    bars.append(bar)
+
+# Add percentage labels on top of each bar
+for bar_group in bars:
+    for bar in bar_group:
+        height = bar.get_height()
+        if height > 0:  # Only show label if there's a value
+            ax.text(bar.get_x() + bar.get_width()/2., height,
+                    f'{height:.1f}%',
+                    ha='center', va='bottom', fontsize=14, fontweight='bold')
+
+# Customize the chart
+ax.set_xlabel('Age Group', fontsize=14, fontweight='bold')
+ax.set_ylabel('Percentage (%)', fontsize=14, fontweight='bold')
+ax.set_title('Parent/Guardian Education Level by Age Group\n(Hispanic Non-Retired Respondents Under 55)', 
+             fontsize=16, fontweight='bold', pad=20)
+ax.set_xticks(x)
+ax.set_xticklabels(age_groups_to_include, fontsize=14)
+ax.legend(loc='upper right', frameon=False, fontsize=12, bbox_to_anchor=(1.0, 1.0))
+
+# Remove gridlines and spines for minimalistic look
+ax.grid(False)
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.spines['left'].set_color('#CCCCCC')
+ax.spines['bottom'].set_color('#CCCCCC')
+
+# Set y-axis to show 0-95%
+ax.set_ylim(0, 95)
+ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: f'{int(y)}%'))
+ax.tick_params(axis='y', labelsize=14)
+
+plt.tight_layout()
+plt.show()
+
+# Print summary statistics
+print("\nParent/Guardian Education Level by Age Group (Under 55):")
+print("="*60)
+print(ch2a_by_age.round(1).to_string())
+print(f"\nTotal respondents included: {len(df_chart11):,}")
+
+
+====================================================================================================
+Chart 13: Financial Control Over Life (B1_b)
+====================================================================================================
+
+# Chart 13: Age Groups vs Financial Control Over Life (B1_b)
+# Filter for age groups under 55 and valid B1_b responses
+
+# Define age groups to include (excluding 55+)
+age_groups_to_include = ['18-24', '25-34', '35-44', '45-54']
+
+# Filter data
+df_chart13 = df[df['ppagecat'].isin(age_groups_to_include) & df['B1_b'].notna()].copy()
+
+# Create combined categories
+def categorize_financial_control(value):
+    if value in ['Always', 'Often']:
+        return 'Often/Always'
+    elif value == 'Sometimes':
+        return 'Sometimes'
+    elif value in ['Rarely', 'Never']:
+        return 'Rarely/Never'
+    else:
+        return None
+
+df_chart13['B1_b_grouped'] = df_chart13['B1_b'].apply(categorize_financial_control)
+
+# Filter out None values
+df_chart13 = df_chart13[df_chart13['B1_b_grouped'].notna()].copy()
+
+# Create crosstab with percentages
+b1b_by_age = pd.crosstab(df_chart13['ppagecat'], df_chart13['B1_b_grouped'], normalize='index') * 100
+
+# Define the order of B1_b categories (from most to least stressed)
+b1b_order = ['Often/Always', 'Sometimes', 'Rarely/Never']
+
+# Filter to only include categories that exist in the data
+b1b_order = [cat for cat in b1b_order if cat in b1b_by_age.columns]
+b1b_by_age = b1b_by_age[b1b_order]
+
+# Reindex to ensure age groups are in order
+b1b_by_age = b1b_by_age.reindex(age_groups_to_include)
+
+# Create the grouped bar chart
+fig, ax = plt.subplots(figsize=(14, 7), facecolor='white')
+ax.set_facecolor('white')
+
+# Define bar positions
+x = np.arange(len(age_groups_to_include))
+width = 0.25
+
+# Define simple, distinguishable colors (red-orange for high stress, green for low stress)
+colors = ['#FF6347', '#FFA500', '#70AD47']  # Red-orange, Orange, Green
+
+# Create bars for each B1_b category
+bars = []
+for i, category in enumerate(b1b_order):
+    offset = (i - len(b1b_order)/2 + 0.5) * width
+    bar = ax.bar(x + offset, b1b_by_age[category], width, 
+                 label=category, color=colors[i], edgecolor='white', linewidth=0.5)
+    bars.append(bar)
+
+# Add percentage labels on top of each bar
+for bar_group in bars:
+    for bar in bar_group:
+        height = bar.get_height()
+        if height > 0:  # Only show label if there's a value
+            ax.text(bar.get_x() + bar.get_width()/2., height,
+                    f'{height:.1f}%',
+                    ha='center', va='bottom', fontsize=14, fontweight='bold')
+
+# Customize the chart
+ax.set_xlabel('Age Group', fontsize=14, fontweight='bold')
+ax.set_ylabel('Percentage (%)', fontsize=14, fontweight='bold')
+ax.set_title('Financial Control Over Life: "Finances control my life" by Age Group\n(Hispanic Non-Retired Respondents Under 55)', 
+             fontsize=16, fontweight='bold', pad=20)
+ax.set_xticks(x)
+ax.set_xticklabels(age_groups_to_include, fontsize=14)
+ax.legend(loc='upper right', frameon=False, fontsize=14, bbox_to_anchor=(1.0, 1.0))
+
+# Remove gridlines and spines for minimalistic look
+ax.grid(False)
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.spines['left'].set_color('#CCCCCC')
+ax.spines['bottom'].set_color('#CCCCCC')
+
+# Set y-axis to show 0-95%
+ax.set_ylim(0, 95)
+ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: f'{int(y)}%'))
+ax.tick_params(axis='y', labelsize=14)
+
+plt.tight_layout()
+plt.show()
+
+# Print summary statistics
+print("\nFinancial Control Over Life by Age Group (Under 55):")
+print("="*60)
+print(b1b_by_age.round(1).to_string())
+print(f"\nTotal respondents included: {len(df_chart13):,}")
+
+
+====================================================================================================
+Chart 14: Emergency Expense Coverage (EF7)
+====================================================================================================
+
+# Chart 14: Age Groups vs Emergency Expense Coverage (EF7)
+# Filter for age groups under 55 and valid EF7 responses
+
+# Define age groups to include (excluding 55+)
+age_groups_to_include = ['18-24', '25-34', '35-44', '45-54']
+
+# Filter data
+df_chart14 = df[df['ppagecat'].isin(age_groups_to_include) & df['EF7'].notna()].copy()
+
+# Create crosstab with percentages
+ef7_by_age = pd.crosstab(df_chart14['ppagecat'], df_chart14['EF7'], normalize='index') * 100
+
+# Define the order of EF7 categories (from lowest to highest coverage)
+ef7_order = ['Under $100', '$100 to $499', '$500 to $999', '$1,000 to $1,999', '$2,000 or more']
+
+# Filter to only include categories that exist in the data
+ef7_order = [cat for cat in ef7_order if cat in ef7_by_age.columns]
+ef7_by_age = ef7_by_age[ef7_order]
+
+# Reindex to ensure age groups are in order
+ef7_by_age = ef7_by_age.reindex(age_groups_to_include)
+
+# Create the grouped bar chart
+fig, ax = plt.subplots(figsize=(14, 7), facecolor='white')
+ax.set_facecolor('white')
+
+# Define bar positions
+x = np.arange(len(age_groups_to_include))
+width = 0.17
+
+# Define simple, distinguishable colors (red-orange for low, green for high)
+colors = ['#FF6347', '#FF8C42', '#FFA500', '#A8D08D', '#70AD47']
+
+# Create bars for each EF7 category
+bars = []
+for i, category in enumerate(ef7_order):
+    offset = (i - len(ef7_order)/2 + 0.5) * width
+    bar = ax.bar(x + offset, ef7_by_age[category], width, 
+                 label=category, color=colors[i], edgecolor='white', linewidth=0.5)
+    bars.append(bar)
+
+# Add percentage labels on top of each bar
+for bar_group in bars:
+    for bar in bar_group:
+        height = bar.get_height()
+        if height > 0:  # Only show label if there's a value
+            ax.text(bar.get_x() + bar.get_width()/2., height,
+                    f'{height:.1f}%',
+                    ha='center', va='bottom', fontsize=11, fontweight='bold')
+
+# Customize the chart
+ax.set_xlabel('Age Group', fontsize=14, fontweight='bold')
+ax.set_ylabel('Percentage (%)', fontsize=14, fontweight='bold')
+ax.set_title('Emergency Expense Coverage from Savings by Age Group\n(Hispanic Non-Retired Respondents Under 55)', 
+             fontsize=16, fontweight='bold', pad=20)
+ax.set_xticks(x)
+ax.set_xticklabels(age_groups_to_include, fontsize=14)
+ax.legend(loc='upper right', frameon=False, fontsize=11, bbox_to_anchor=(1.0, 1.0))
+
+# Remove gridlines and spines for minimalistic look
+ax.grid(False)
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.spines['left'].set_color('#CCCCCC')
+ax.spines['bottom'].set_color('#CCCCCC')
+
+# Set y-axis to show 0-95%
+ax.set_ylim(0, 95)
+ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: f'{int(y)}%'))
+ax.tick_params(axis='y', labelsize=14)
+
+plt.tight_layout()
+plt.show()
+
+# Print summary statistics
+print("\nEmergency Expense Coverage from Savings by Age Group (Under 55):")
+print("="*60)
+print(ef7_by_age.round(1).to_string())
+print(f"\nTotal respondents included: {len(df_chart14):,}")
+
